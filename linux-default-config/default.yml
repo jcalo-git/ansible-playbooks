@@ -1,8 +1,0 @@
-- name: Install prerequisites 
-  ansible.builtin.apt:
-    pkg:
-    - git
-    - zsh
-
-- name: Execute Script 
-  shell: curl -fsSL https://raw.githubusercontent.com/ohmyzsh/ohmyzsh/master/tools/install.sh
