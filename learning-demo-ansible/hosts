@@ -1,0 +1,3 @@
+[control]
+
+Jiraya ansible_connection=local
