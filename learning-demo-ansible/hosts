@@ -1,3 +1,6 @@
 [control]
 
 Jiraya ansible_connection=local
+
+[pi]
+pi
