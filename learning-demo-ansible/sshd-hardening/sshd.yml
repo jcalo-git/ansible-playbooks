@@ -1,0 +1,19 @@
+---
+- hosts: pi
+  become: true
+  gather_facts: false
+
+  tasks:
+  - name: modify sshd_config
+    copy:
+      src: sshd_config
+      dest: /etc/ssh/sshd_config
+      backup: yes
+      owner: root
+      group: root
+      mode: 0600
+    notify: Reload SSH
+  - name: reload sshd
+    service:
+      name: sshd
+      state: reloaded
