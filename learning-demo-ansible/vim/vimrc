@@ -1,0 +1,50 @@
+call plug#begin()
+ " Theme 
+ Plug 'dracula/vim'
+ 
+ " Utilities 
+ Plug 'preservim/nerdtree'
+ Plug 'jghauser/mkdir.nvim'
+ Plug 'tpope/vim-commentary'
+ 
+ " Git
+ Plug 'tpope/vim-fugitive'
+
+
+call plug#end()
+
+"options
+set hlsearch                " highlight search 
+set incsearch               " incremental search
+set history=1000
+
+" User interface
+set mouse=a
+set title
+set hidden
+set number
+set clipboard=unnamedplus
+set wildmenu
+set wildmode=list:longest
+set cc=80
+set cursorline
+set virtualedit=all
+" Tabs size 
+set expandtab
+set tabstop=2
+set shiftwidth=2
+
+" Colors
+set t_Co=256
+
+" Misc
+set nocompatible
+syntax on
+filetype on
+filetype plugin on
+filetype indent on
+
+" Startup UI config 
+" autocmd VimEnter * NERDTree
+
+
