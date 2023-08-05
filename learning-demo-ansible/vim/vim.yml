@@ -12,5 +12,4 @@
           dest: /home/joshu/.vimrc
           owner: joshu
           group: joshu
-          mode: 0600
-      
+          mode: '0600'
