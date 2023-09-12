@@ -3,3 +3,15 @@ Jiraya ansible_connection=local
 
 [pi]
 pi
+
+[multipass]
+node1
+node2
+node3
+ca
+
+[loadbalancer]
+node1
+
+[ca]
+CA

@@ -1,12 +1,11 @@
 ---
-  - name: configure vim
+  - name: Configure vim
     hosts: localhost
-    
     tasks:
-      - name: curl download vim-plug.git
+      - name: Download vim-plug.git
         shell: curl -fLo ~/.vim/autoload/plug.vim --create-dirs \ https://raw.githubusercontent.com/junegunn/vim-plug/master/plug.vim
 
-      - name: download vimrc config
+      - name: Download vimrc config
         copy:
           src: vimrc
           dest: /home/joshu/.vimrc
