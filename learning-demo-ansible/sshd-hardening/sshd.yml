@@ -2,7 +2,6 @@
 - hosts: pi
   become: true
   gather_facts: false
-
   tasks:
   - name: Modify sshd_config
     copy:
