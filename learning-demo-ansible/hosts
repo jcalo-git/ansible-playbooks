@@ -1,10 +1,10 @@
 [pi]
-pi
+pi1
+pi2
 
-[multipass]
-node1
-node2
-node3
+# [multipass]
+# node1
+# node2
+# node3
+# docker
 
-[loadbalancer]
-node1
