@@ -1,18 +1,20 @@
 ---
-- hosts: pi
+- name: Harden sshd_config
+  hosts: pi
   become: true
   gather_facts: false
   tasks:
-  - name: Modify sshd_config
-    copy:
+   - name: Modify sshd_config
+     ansible.builtin.copy:
       src: sshd_config
       dest: /etc/ssh/sshd_config
       backup: true
       owner: root
       group: root
       mode: "0600"
-    notify: Reload SSH
-  - name: Reload sshd
-    service:
+     notify: Reload SSH
+  handlers:
+   - name: Reload SSH
+     ansible.builtin.systemd:
       name: sshd
       state: reloaded
