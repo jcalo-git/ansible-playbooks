@@ -1,0 +1,16 @@
+---
+- name: Tailscale installation
+  hosts: all
+  become: true
+  gather_facts: true
+  tasks:
+  - name: Download Tailscale install script
+  get_url:
+    url: https://tailscale.com/install.sh
+    dest: /tmp/install.sh
+    mode: '0755'
+  when: not tailscale_exists.stat.exists
+
+- name: Run Tailscale install script
+  ansible.builtin.command: /tmp/install.sh
+  when: not tailscale_exists.stat.exists
