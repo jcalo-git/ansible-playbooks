@@ -9,12 +9,6 @@
       register: tailscale_exists
       ignore_errors: true
 
-    - name: Download Tailscale install script
-      get_url:
-      url: https://tailscale.com/install.sh
-      dest: /tmp/install.sh
-      mode: '0755'
-
-    - name: Run Tailscale install script
-      command: sh /tmp/install.sh
+    - name: Download and install Tailscale
+      shell: curl -fsSL https://tailscale.com/install.sh | sh
       when: tailscale_exists.rc != 0
