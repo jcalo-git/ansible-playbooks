@@ -20,9 +20,9 @@
         msg:  "{{ item }}"
       loop:
         - "Update Cache Output: 
-        {{ apt_cache_output }}"
+          {{ apt_cache_output }}"
         - "Upgrade Output: 
-        {{ apt_upgrade_output }}"
+          {{ apt_upgrade_output }}"
     - name: Check if system requires a reboot
       ansible.builtin.stat:
         path: /var/run/reboot-required
