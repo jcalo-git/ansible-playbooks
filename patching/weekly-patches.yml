@@ -5,12 +5,24 @@
   become_user: root
   gather_facts: false
   tasks:
-    - name: Patches
-      ansible.builtin.apt: update_cache=yes force_apt_get=yes cache_valid_time=3600
+    - name: Update cache
+      ansible.builtin.apt: 
+        update_cache: yes 
+      register: apt_cache_output
     - name: Upgrade packages
       ansible.builtin.apt:
-        upgrade: true
-        update_cache: true
+        upgrade: yes
+        autoremove: yes
+        autoclean: yes
+      register: apt_upgrade_output
+    - name: Display update progress
+      ansible.builtin.debug:
+        msg:  "{{ item }}"
+      loop:
+        - "Update Cache Output: 
+        {{ apt_cache_output }}"
+        - "Upgrade Output: 
+        {{ apt_upgrade_output }}"
     - name: Check if system requires a reboot
       ansible.builtin.stat:
         path: /var/run/reboot-required

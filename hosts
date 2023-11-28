@@ -3,9 +3,12 @@ pi1
 pi2
 pi3
 
-# [multipass]
+[oracle]
+oci1
+
+[multipass]
 # node1
 # node2
 # node3
 # docker
-
+test

@@ -13,4 +13,4 @@
 
 - name: Run Tailscale install script
   ansible.builtin.command: /tmp/install.sh
-  when: not tailscale_exists.stat.exists
+  when: not tailscale_exists.stat.existsssh
