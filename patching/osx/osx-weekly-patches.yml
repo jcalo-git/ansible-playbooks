@@ -1,0 +1,20 @@
+---
+- name: Update macOS machine
+  hosts: localhost
+  connection: local
+  gather_facts: false
+  tasks:
+    - name: Check if Homebrew is installed
+      command: which brew
+      register: brew_installed
+      ignore_errors: true
+
+    - name: Install Homebrew
+      command: /bin/bash -c "$(curl -fsSL https://raw.githubusercontent.com/Homebrew/install/HEAD/install.sh)"
+      when: brew_installed.rc != 0
+
+    - name: Update Homebrew
+      command: brew update
+
+    - name: Upgrade Homebrew packages
+      command: brew upgrade
