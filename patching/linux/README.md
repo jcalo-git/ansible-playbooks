@@ -26,5 +26,3 @@ Please note that this playbook requires root privileges for most tasks. Therefor
 ## Contributing
 
 If you have suggestions for improving this playbook, please open an issue or submit a pull request.
-
-Happy patching!

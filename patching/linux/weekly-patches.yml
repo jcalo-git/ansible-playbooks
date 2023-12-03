@@ -15,7 +15,7 @@
         autoremove: true
         autoclean: true
       register: apt_upgrade_output
-    #- name: Display update progress
+    #- name: Display update progress 
     #  ansible.builtin.debug:
     #    msg: "{{ item }}"
     #  loop:
