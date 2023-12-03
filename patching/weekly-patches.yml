@@ -6,23 +6,23 @@
   gather_facts: false
   tasks:
     - name: Update cache
-      ansible.builtin.apt: 
-        update_cache: yes 
+      ansible.builtin.apt:
+        update_cache: true
       register: apt_cache_output
     - name: Upgrade packages
       ansible.builtin.apt:
-        upgrade: yes
-        autoremove: yes
-        autoclean: yes
+        upgrade: true
+        autoremove: true
+        autoclean: true
       register: apt_upgrade_output
-    - name: Display update progress
-      ansible.builtin.debug:
-        msg:  "{{ item }}"
-      loop:
-        - "Update Cache Output: 
-          {{ apt_cache_output }}"
-        - "Upgrade Output: 
-          {{ apt_upgrade_output }}"
+    #- name: Display update progress
+    #  ansible.builtin.debug:
+    #    msg: "{{ item }}"
+    #  loop:
+    #    - "Update Cache Output:
+    #      {{ apt_cache_output }}"
+    #    - "Upgrade Output:
+    #      {{ apt_upgrade_output }}"
     - name: Check if system requires a reboot
       ansible.builtin.stat:
         path: /var/run/reboot-required
