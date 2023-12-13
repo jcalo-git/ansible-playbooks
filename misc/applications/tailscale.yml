@@ -1,0 +1,15 @@
+---
+- name: tailscale
+  hosts: all
+  gather_facts: false
+  tasks:
+    - name: Check if tailscale is installed
+      command: tailscale status
+      register: tailscale_status
+
+    - name: Install tailscale if not installed
+      become: yes
+      package:
+        name: tailscale
+        state: present
+      when: tailscale_status.rc != 0
