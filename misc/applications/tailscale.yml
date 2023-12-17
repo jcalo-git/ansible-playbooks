@@ -1,15 +1,17 @@
 ---
-- name: tailscale
-  hosts: all
+- name: Install Tailscale
+  hosts: "{{ target_hosts }}"
+  become: yes
   gather_facts: false
+  vars_prompt:
+    - name: "target_hosts"
+      prompt: "which hosts"
+      private: false
   tasks:
-    - name: Check if tailscale is installed
-      command: tailscale status
+    - name: Check if tailscale is installed 
+      command: tailscale status 
       register: tailscale_status
-
-    - name: Install tailscale if not installed
-      become: yes
-      package:
-        name: tailscale
-        state: present
+      ignore_errors: true 
+    - name: Download and install Tailscale
+      ansible.builtin.shell: curl -fsSL https://tailscale.com/install.sh | sh
       when: tailscale_status.rc != 0
