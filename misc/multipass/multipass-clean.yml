@@ -1,4 +1,4 @@
-  - name: Remove all multipass instances
+  - name: Clean multipass
     hosts: localhost
     gather_facts: false
     tasks:
