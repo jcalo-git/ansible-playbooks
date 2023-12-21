@@ -15,13 +15,22 @@
     - name: "ssh_key"
       prompt: "Enter your ssh key"
       private: false
+    - name: "mem"
+      prompt: "How much memory"
+      private: false
+    - name: "cpu"
+      prompt: "How many cores"
+      private: false
+    - name: "disk"
+      prompt: "Enter disk size"
+      private: false
   tasks:
     - name: Launch node1
-      command: "multipass launch --name {{ node1 }} --cpus 2 --mem 2G --disk 30G lts"
+      command: "multipass launch --name {{ node1 }} --cpus {{ cpu }} --mem {{ mem }} --disk {{ disk }} lts"
     - name: Launch node2
-      command: "multipass launch --name {{ node2 }} --cpus 2 --mem 2G --disk 30G lts"
+      command: "multipass launch --name {{ node2 }} --cpus {{ cpu }} --mem {{ mem }} --disk {{ disk }} lts"
     - name: Launch node3
-      command: "multipass launch --name {{ node3 }} --cpus 2 --mem 2G --disk 30G lts"
+      command: "multipass launch --name {{ node3 }} --cpus {{ cpu }} --mem {{ mem }} --disk {{ disk }} lts"
     - name: Copy SSH key to node1
       command: "multipass exec {{ node1 }} -- sh -c 'echo {{ ssh_key }} >> /home/ubuntu/.ssh/authorized_keys'"
     - name: Copy SSH key to node2
