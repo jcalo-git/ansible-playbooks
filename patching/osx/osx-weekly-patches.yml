@@ -21,3 +21,15 @@
     
     - name: Check for system updates 
       command: softwareupdate -l
+
+    - name: Check if pip-review is installed
+      command: which pip-review
+      register: pip_review_installed
+      ignore_errors: true
+
+    - name: Install pip-review if not installed
+      command: pip install --upgrade pip-review
+      when: pip_review_installed.rc != 0
+
+    - name: Upgrade python packages
+      command: pip-review --auto
