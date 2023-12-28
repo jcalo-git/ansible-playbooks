@@ -5,31 +5,31 @@
   gather_facts: false
   tasks:
     - name: Check if Homebrew is installed
-      command: which brew
+      ansible.builtin.command: which brew
       register: brew_installed
       ignore_errors: true
 
     - name: Install Homebrew
-      command: /bin/bash -c "$(curl -fsSL https://raw.githubusercontent.com/Homebrew/install/HEAD/install.sh)"
+      ansible.builtin.command: /bin/bash -c "$(curl -fsSL https://raw.githubusercontent.com/Homebrew/install/HEAD/install.sh)"
       when: brew_installed.rc != 0
 
     - name: Update Homebrew
-      command: brew update
+      ansible.builtin.command: brew update
 
     - name: Upgrade Homebrew packages
-      command: brew upgrade
-    
-    - name: Check for system updates 
-      command: softwareupdate -l
+      ansible.builtin.command: brew upgrade
+
+    - name: Check for system updates
+      ansible.builtin.command: softwareupdate -l
 
     - name: Check if pip-review is installed
-      command: which pip-review
+      ansible.builtin.command: which pip-review
       register: pip_review_installed
       ignore_errors: true
 
     - name: Install pip-review if not installed
-      command: pip install --upgrade pip-review
+      ansible.builtin.command: pip install --upgrade pip-review
       when: pip_review_installed.rc != 0
 
     - name: Upgrade python packages
-      command: pip-review --auto
+      ansible.builtin.command: pip-review --auto
