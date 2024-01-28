@@ -1,6 +1,6 @@
 ---
 - name: Harden sshd_config
-  hosts: pi
+  hosts: all
   become: true
   gather_facts: false
   tasks:
