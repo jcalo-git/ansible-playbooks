@@ -8,6 +8,9 @@
       prompt: "which hosts"
       private: false
   tasks:
+    - name: Update apt cache
+      ansible.builtin.apt:
+        update_cache: yes
     - name: Update tailscale package
       ansible.builtin.apt:
         name: tailscale
