@@ -1,18 +1,22 @@
 ---
 - name: Install Docker and set up a Docker Swarm cluster
-  hosts: swarm
+  hosts: "{{ target_hosts }}"
   become: yes
   vars:
     docker_apt_key_url: https://download.docker.com/linux/{{ ansible_distribution | lower }}/gpg
     docker_apt_repo: "deb [arch={{ ansible_architecture }}] https://download.docker.com/linux/{{ ansible_distribution | lower }} {{ ansible_distribution_release }} stable"
     swarm_manager: "{{ groups['manager'][0] }}"
-    manager_token: ""
-    worker_token: ""
-
+  vars_prompt:
+    - name: "docker_user"
+      prompt: "Grant privileges to docker user"
+      private: false
+    - name: "target_hosts"
+      prompt: "which hosts"
+      private: false
   tasks:
     - name: Install required packages
       ansible.builtin.apt:
-        name:
+        name: 
           - apt-transport-https
           - ca-certificates
           - curl
@@ -33,7 +37,7 @@
 
     - name: Install Docker
       ansible.builtin.apt:
-        name: docker-ce
+        name: docker.io
         state: latest
 
     - name: Ensure Docker service is running
@@ -42,6 +46,16 @@
         state: started
         enabled: yes
 
+    - name: Add a user to the docker group
+      user:
+        name: "{{ docker_user }}"
+        groups: docker
+        append: yes
+
+    - name: Set swarm_manager fact for all hosts
+      ansible.builtin.set_fact:
+        swarm_manager: "{{ groups['manager'][0] }}"
+
 - name: Initialize Docker Swarm on the manager node
   hosts: manager
   become: yes
@@ -49,29 +63,26 @@
     - name: Initialize Docker Swarm
       ansible.builtin.command:
         cmd: docker swarm init --advertise-addr {{ ansible_default_ipv4.address }}
-      when: manager_token == ""
+      register: swarm_init_result
+      failed_when: "'This node is already part of a swarm' not in swarm_init_result.stderr"
 
     - name: Get manager join-token
       ansible.builtin.command:
         cmd: docker swarm join-token -q manager
       register: manager_token_output
-      when: manager_token == ""
 
-    - name: Set manager token
-      set_fact:
+    - name: Set manager token as fact
+      ansible.builtin.set_fact:
         manager_token: "{{ manager_token_output.stdout }}"
-      when: manager_token == ""
 
     - name: Get worker join-token
       ansible.builtin.command:
         cmd: docker swarm join-token -q worker
       register: worker_token_output
-      when: worker_token == ""
 
-    - name: Set worker token
-      set_fact:
+    - name: Set worker token as fact
+      ansible.builtin.set_fact:
         worker_token: "{{ worker_token_output.stdout }}"
-      when: worker_token == ""
 
 - name: Join worker nodes to the Docker Swarm cluster
   hosts: workers
@@ -80,7 +91,6 @@
     - name: Join the swarm as a worker
       ansible.builtin.command:
         cmd: docker swarm join --token {{ hostvars[swarm_manager].worker_token }} {{ hostvars[swarm_manager].ansible_default_ipv4.address }}:2377
-      when: worker_token != ""
 
 - name: Display Docker Swarm status
   hosts: manager
