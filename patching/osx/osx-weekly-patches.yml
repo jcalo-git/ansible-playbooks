@@ -17,7 +17,7 @@
       ansible.builtin.command: brew update
 
     - name: Upgrade Homebrew packages
-      ansible.builtin.command: brew upgrade
+      ansible.builtin.command: brew upgrade -v
 
     - name: Check for system updates
       ansible.builtin.command: softwareupdate -l
