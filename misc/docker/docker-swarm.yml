@@ -25,10 +25,10 @@
         state: present
         update_cache: yes
 
-    - name: Add Docker GPG key
-      ansible.builtin.apt_key:
-        url: "{{ docker_apt_key_url }}"
-        state: present
+    # - name: Add Docker GPG key
+    #   ansible.builtin.apt_key:
+    #     url: "{{ docker_apt_key_url }}"
+    #     state: present
 
     - name: Add Docker repository
       ansible.builtin.apt_repository:
