@@ -35,7 +35,8 @@
       apt:
         update_cache: no
         name: docker.io
-
+        state: present
+        
     - name: Install Docker Compose
       apt:
         name: docker-compose

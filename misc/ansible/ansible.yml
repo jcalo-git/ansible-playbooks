@@ -1,0 +1,20 @@
+---
+- name: Install Ansible
+  hosts: "{{ target_hosts }}"
+  become: yes
+  gather_facts: true
+  vars_prompt:
+    - name: "target_hosts"
+      prompt: "which hosts"
+      private: false
+
+  tasks:
+    - name: Ensure Ansible is installed on Debian-based systems
+      ansible.builtin.apt:
+        name: ansible
+        state: present
+        update_cache: yes
+        cache_valid_time: 86400
+      when: ansible_facts['os_family'] == 'Debian'
+
+
