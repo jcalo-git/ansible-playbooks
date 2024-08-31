@@ -1,6 +1,6 @@
 ---
 - name: Weekly patches
-  hosts: pi
+  hosts: pve
   become: true
   become_user: root
   gather_facts: false
