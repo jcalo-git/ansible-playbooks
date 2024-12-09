@@ -1,8 +1,12 @@
 ---
 - name: Harden sshd_config
-  hosts: pi, oci
+  hosts: "{{ target_hosts }}"
   become: true
   gather_facts: false
+  vars_prompt:
+    - name: "target_hosts"
+      prompt: "Which hosts?"
+      private: false 
   tasks:
    - name: Modify sshd_config
      ansible.builtin.copy:
