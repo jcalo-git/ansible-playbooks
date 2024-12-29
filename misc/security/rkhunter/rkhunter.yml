@@ -12,6 +12,7 @@
     apt:
       name: rkhunter
       state: present
+      install_recommends: no
 
   - name: configure rkhunter mirrors
     ansible.builtin.lineinfile:
