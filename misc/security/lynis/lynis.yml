@@ -1,0 +1,30 @@
+# Define the target system
+- name: Install lynis
+  hosts: "{{ target_hosts }}"
+  become: true
+  gather_facts: false
+  vars_prompt:
+    - name: "target_hosts"
+      prompt: "Which hosts do you want to run the playbook on?"
+      private: false
+
+# Install required packages
+  tasks:
+  - name: install lynis
+    apt:
+      name: lynis
+      state: present
+#   - name: configure lynis
+#     template:
+#       src: templates/lynis/conf.j2
+#       dest: /etc/lynis/lynis.conf
+#       mode: '0644'
+  - name: run lynis audit
+    command: lynis audit system
+
+# # Define template files for lynis
+#   roles:
+#   - role: template_files
+#     template_file:
+#       - src: templates/lynis/conf.j2
+#       - dest: /etc/lynis/lynis.conf

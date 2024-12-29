@@ -1,0 +1,69 @@
+---
+- name: Configure rkhunter
+  hosts: "{{ target_hosts }}"
+  become: true
+  gather_facts: false
+  vars_prompt:
+    - name: "target_hosts"
+      prompt: "Which hosts do you want to run the playbook on?"
+      private: false
+  tasks:
+  - name: install rkhunter
+    apt:
+      name: rkhunter
+      state: present
+
+  - name: configure rkhunter mirrors
+    ansible.builtin.lineinfile:
+      path: /etc/rkhunter.conf
+      regexp: '^UPDATE_MIRRORS '
+      line: 'UPDATE_MIRRORS=1'
+      state: present
+      create: yes
+
+  - name: set use any mirror 
+    ansible.builtin.lineinfile:
+      path: /etc/rkhunter.conf
+      regexp: '^MIRRORS_MODE '
+      line: 'MIRRORS_MODE=0'
+      state: present
+      create: yes
+  
+  - name: set web cmd to null 
+    ansible.builtin.lineinfile:
+      path: /etc/rkhunter.conf
+      regexp: '^WEB_CMD '
+      line: 'WEB_CMD=""'
+      state: present
+      create: yes
+
+  - name: set daily run jobs
+    ansible.builtin.lineinfile:
+      path: /etc/default/rkhunter
+      regexp: '^CRON_DAILY_RUN '
+      line: 'CRON_DAILY_RUN="true"'
+      state: present
+      create: yes
+  
+  - name: enable rkhunter weekly database updates
+    ansible.builtin.lineinfile:
+      path: /etc/default/rkhunter
+      regexp: '^CRON_DB_UPDATE '
+      line: 'CRON_DB_UPDATE="true"'
+      state: present
+      create: yes
+
+  - name: set automatic database updates 
+    ansible.builtin.lineinfile:
+      path: /etc/default/rkhunter
+      regexp: '^APT_AUTOGEN '
+      line: 'APT_AUTOGEN="true"'
+      state: present
+      create: yes
+
+  - name: validate rkhunter configuration
+    ansible.builtin.command:
+      cmd: rkhunter -C
+    register: rkhunter_test
+    failed_when: rkhunter_test.rc != 0
+

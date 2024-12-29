@@ -1,0 +1,45 @@
+---
+# Ansible Playbook to install fail2ban and lynis
+
+# Define the target system
+- name: Install fail2ban
+  hosts: "{{ target_hosts }}"
+  become: true
+  gather_facts: false
+  vars_prompt:
+    - name: "target_hosts"
+      prompt: "Which hosts do you want to run the playbook on?"
+      private: false
+      
+# Install required packages
+  tasks:
+  - name: Install fail2ban
+    apt:
+      name: fail2ban
+      state: present
+
+  - name: Configure fail2ban
+    template:
+      src: templates/jail.conf.j2
+      dest: /etc/fail2ban/jail.conf
+      mode: '0644'
+    notify: restart fail2ban
+
+  - name: Enable and start fail2ban
+    service:
+      name: fail2ban
+      state: started
+      enabled: yes
+
+  handlers:
+  - name: restart fail2ban
+    service:
+      name: fail2ban
+      state: restarted
+
+# Define the template files for fail2ban and lynis configurations
+  roles:
+  - role: templated_files
+    templated_files:
+      - src: templates/jail.conf.j2
+        dest: /etc/fail2ban/jail.conf
