@@ -1,0 +1,110 @@
+---
+- name: Configure SSH daemon (sshd_config)
+  hosts: "{{ target_hosts }}"
+  become: true
+  gather_facts: false
+  vars_prompt:
+    - name: "target_hosts"
+      prompt: "Which hosts do you want to run the playbook on?"
+      private: false
+  vars:
+    sshd_config_path: /etc/ssh/sshd_config
+    sshd_config_backup_path: /etc/ssh/sshd_config.backup
+    sshd_config_settings:
+      # Defaults
+      Port: 2222
+      PermitRootLogin: "no"
+      PasswordAuthentication: "no"
+      PubkeyAuthentication: "yes"
+      X11Forwarding: "no"
+      MaxSessions: 2
+      MaxAuthTries: 3
+      LoginGraceTime: "60"
+      ClientAliveInterval: 300
+      ClientAliveCountMax: 2
+      UsePAM: "yes"
+      Protocol: 2
+      PermitEmptyPasswords: "no"
+      ChallengeResponseAuthentication: "no"
+      GSSAPIAuthentication: "no"
+      GSSAPIKeyExchange: "no"
+      UseDNS: "no"
+      ListenAddress: 0.0.0.0
+      TCPKeepAlive: "no"
+      AllowAgentForwarding: "no"
+      
+      # Specify user  
+      # AllowUsers: "admin"
+      # AllowGroups: "ssh-users"
+      # DenyUsers: "baduser"
+      # DenyGroups: "badgroup"
+      # Disable SSH Tunneling Features (if not needed)
+      AllowTcpForwarding: "no"
+      PermitTunnel: "no"
+      GatewayPorts: "no"
+      # Specify logging 
+      LogLevel: "VERBOSE"
+
+  tasks:
+    - name: Backup the existing sshd_config file
+      copy:
+        src: "{{ sshd_config_path }}"
+        dest: "{{ sshd_config_backup_path }}"
+        remote_src: yes
+      when: not ansible_check_mode
+      changed_when: false
+      tags: backup
+
+    - name: Ensure SSH service is installed
+      ansible.builtin.package:
+        name: openssh-server
+        state: present
+      tags: install
+
+    - name: Update sshd_config with specified settings
+      ansible.builtin.lineinfile:
+        path: "{{ sshd_config_path }}"
+        regexp: "^{{ item.key }} "
+        line: "{{ item.key }} {{ item.value }}"
+        state: present
+      loop: "{{ sshd_config_settings | dict2items }}"
+      notify: Restart SSH
+      tags: config
+
+    - name: Ensure SSH service is enabled and started
+      ansible.builtin.service:
+        name: ssh.service
+        enabled: yes
+        state: started
+      tags: service
+
+    - name: Set Ciphers in sshd_config
+      ansible.builtin.lineinfile:
+        path: /etc/ssh/sshd_config
+        regexp: '^Ciphers '
+        line: 'Ciphers aes256-ctr,aes192-ctr,aes128-ctr'
+        state: present
+        create: yes
+
+    - name: Set MACs in sshd_config
+      ansible.builtin.lineinfile:
+        path: /etc/ssh/sshd_config
+        regexp: '^MACs '
+        line: 'MACs hmac-sha2-256,hmac-sha2-512'
+        state: present
+        create: yes
+
+    - name: Set KexAlgorithms in sshd_config
+      ansible.builtin.lineinfile:
+        path: /etc/ssh/sshd_config
+        regexp: '^KexAlgorithms '
+        line: 'KexAlgorithms curve25519-sha256@libssh.org'
+        state: present
+        create: yes
+
+  handlers:
+    - name: Restart SSH
+      ansible.builtin.service:
+        name: sshd
+        state: restarted
+      tags: restart
