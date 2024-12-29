@@ -1,0 +1,12 @@
+*********************************************************************
+**                           WARNING                               **
+*********************************************************************
+This is a private system. Unauthorized access is prohibited.
+
+All activities on this system are monitored and recorded. By logging 
+in, you acknowledge and consent to this monitoring. Unauthorized or 
+malicious use of this system will be reported to the appropriate 
+authorities and may result in legal consequences.
+
+If you are not an authorized user, please disconnect immediately.
+*********************************************************************

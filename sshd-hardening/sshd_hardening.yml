@@ -32,7 +32,7 @@
       ListenAddress: 0.0.0.0
       TCPKeepAlive: "no"
       AllowAgentForwarding: "no"
-      
+
       # Specify user  
       # AllowUsers: "admin"
       # AllowGroups: "ssh-users"
@@ -101,6 +101,27 @@
         line: 'KexAlgorithms curve25519-sha256@libssh.org'
         state: present
         create: yes
+    
+    - name: Copy SSH banner
+      ansible.builtin.copy:
+        src: sshd_banner.txt
+        dest: /etc/ssh/ssh_banner
+        owner: root
+        group: root
+        mode: '0644'
+    
+    - name: Enable banner in sshd_config
+      ansible.builtin.lineinfile:
+        path: /etc/ssh/sshd_config
+        regexp: '^Banner '
+        line: 'Banner /etc/ssh/ssh_banner'
+        state: present
+
+    - name: Validate SSH configuration
+      ansible.builtin.command:
+        cmd: sshd -t
+      register: sshd_test
+      failed_when: sshd_test.rc != 0
 
   handlers:
     - name: Restart SSH
