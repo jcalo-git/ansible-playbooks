@@ -12,7 +12,7 @@
     sshd_config_backup_path: /etc/ssh/sshd_config.backup
     sshd_config_settings:
       # Defaults
-      Port: 2222
+      Port: 22
       PermitRootLogin: "no"
       PasswordAuthentication: "no"
       PubkeyAuthentication: "yes"
