@@ -1,7 +1,7 @@
 ---
-- name: Install and configure Docker and Docker Compose
+- name: Install and configure Docker
   hosts: "{{ target_hosts }}"
-  become: yes  # Run tasks with sudo privileges
+  become: true  # Run tasks with sudo privileges
   vars_prompt:
     - name: "target_hosts"
       prompt: "which hosts"
@@ -11,19 +11,19 @@
       private: false
   tasks:
     - name: Install Docker
-      apt:
+      ansible.builtin.apt:
         name: docker.io
         state: present
-        update_cache: yes  # Update the package cache before installing
+        update_cache: true  # Update the package cache before installing
 
     - name: Enable and start Docker service
-      systemd:
+      ansible.builtin.systemd:
         name: docker
-        enabled: yes
+        enabled: true
         state: started
 
     - name: Add the current user to the Docker group
-      user:
+      ansible.builtin.user:
         name: "{{ docker_user }}"
         groups: docker
-        append: yes  # Append the user to the Docker group without removing existing groups
+        append: true  # Append the user to the Docker group without removing existing groups

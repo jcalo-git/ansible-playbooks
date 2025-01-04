@@ -1,7 +1,7 @@
 ---
 - name: Install Docker Compose
   hosts: "{{ target_hosts }}"
-  become: yes  # Run tasks with sudo privileges
+  become: true  # Run tasks with sudo privileges
   vars_prompt:
     - name: "target_hosts"
       prompt: "which hosts"
@@ -25,7 +25,7 @@
         is_x86_64: "{{ architecture_info.ansible_facts.ansible_architecture == 'x86_64' }}"
 
     - name: Download Docker Compose binary
-      get_url:
+      ansible.builtin.get_url:
         url: https://github.com/docker/compose/releases/download/v2.32.1/docker-compose-linux-aarch64
         dest: /tmp/docker-compose
         mode: '0755'  # Set executable permissions
@@ -33,7 +33,7 @@
       register: download_result
 
     - name: Download Docker Compose binary
-      get_url:
+      ansible.builtin.get_url:
         url: https://github.com/docker/compose/releases/download/v2.32.1/docker-compose-linux-x86_64
         dest: /tmp/docker-compose
         mode: '0755'  # Set executable permissions
