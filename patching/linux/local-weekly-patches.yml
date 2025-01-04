@@ -7,14 +7,14 @@
   tasks:
     - name: Update APT Cache
       ansible.builtin.apt:
-        update_cache: yes
+        update_cache: true
         cache_valid_time: 86400
 
     - name: Upgrade APT packages
       ansible.builtin.apt:
-        upgrade: yes
-        autoremove: yes
-        autoclean: yes
+        upgrade: true
+        autoremove: true
+        autoclean: true
 
     - name: Check if system requires a reboot
       ansible.builtin.stat:
