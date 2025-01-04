@@ -1,0 +1,53 @@
+---
+- name: Install Docker Compose
+  hosts: "{{ target_hosts }}"
+  become: yes  # Run tasks with sudo privileges
+  vars_prompt:
+    - name: "target_hosts"
+      prompt: "which hosts"
+      private: false
+  tasks:
+    - name: Gather system architecture
+      ansible.builtin.setup:
+        filter: ansible_architecture
+      register: architecture_info
+
+    - name: Debug architecture information
+      ansible.builtin.debug:
+        var: architecture_info.ansible_facts.ansible_architecture
+
+    - name: Check if architecture is ARM
+      ansible.builtin.set_fact:
+        is_arm: "{{ architecture_info.ansible_facts.ansible_architecture == 'armv7l' or architecture_info.ansible_facts.ansible_architecture == 'aarch64' }}"
+
+    - name: Check if architecture is X86_64
+      ansible.builtin.set_fact:
+        is_x86_64: "{{ architecture_info.ansible_facts.ansible_architecture == 'x86_64' }}"
+
+    - name: Download Docker Compose binary
+      get_url:
+        url: https://github.com/docker/compose/releases/download/v2.32.1/docker-compose-linux-aarch64
+        dest: /tmp/docker-compose
+        mode: '0755'  # Set executable permissions
+      when: is_arm
+      register: download_result
+
+    - name: Download Docker Compose binary
+      get_url:
+        url: https://github.com/docker/compose/releases/download/v2.32.1/docker-compose-linux-x86_64
+        dest: /tmp/docker-compose
+        mode: '0755'  # Set executable permissions
+      when: is_x86_64
+      register: download_result
+
+    - name: Move docker-compose binary
+      ansible.builtin.copy:
+        src: /tmp/docker-compose
+        dest: /usr/bin/docker-compose
+        mode: '0755'
+        remote_src: true
+
+    - name: Clean up download_result
+      ansible.builtin.file:
+        path: /tmp/docker-compose
+        state: absent

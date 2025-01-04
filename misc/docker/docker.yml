@@ -27,23 +27,3 @@
         name: "{{ docker_user }}"
         groups: docker
         append: yes  # Append the user to the Docker group without removing existing groups
-
-    # - name: Download Docker Compose binary
-    #   get_url:
-    #     url: https://github.com/docker/compose/releases/download/v2.32.1/docker-compose-linux-armv7
-    #     method: GET
-    #     validate_certs: false
-    #     dest: /tmp/docker-compose
-    #     mode: '0755'  # Set executable permissions
-
-    # - name: Move Docker Compose binary to /usr/bin
-    #   copy:
-    #     src: /tmp/docker-compose
-    #     dest: /usr/bin/docker-compose
-    #     remote_src: yes  # Copy from the remote source (downloaded file)
-    #     mode: '0755'  # Ensure executable permissions
-
-    # - name: Clean up temporary Docker Compose binary
-    #   file:
-    #     path: /tmp/docker-compose
-    #     state: absent  # Remove the temporary file
