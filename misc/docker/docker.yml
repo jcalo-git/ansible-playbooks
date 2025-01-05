@@ -1,5 +1,5 @@
 ---
-- name: Install and configure Docker
+- name: Install Docker and Docker-Compose-V2
   hosts: "{{ target_hosts }}"
   become: true  # Run tasks with sudo privileges
   vars_prompt:
@@ -12,7 +12,9 @@
   tasks:
     - name: Install Docker
       ansible.builtin.apt:
-        name: docker.io
+        name: 
+          - docker.io
+          - docker-compose-v2
         state: present
         update_cache: true  # Update the package cache before installing
 
