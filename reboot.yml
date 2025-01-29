@@ -1,0 +1,17 @@
+---
+- name: Reboot Machines
+  hosts: "{{ target_hosts }}"
+  become: true
+  gather_facts: false
+  vars_prompt:
+    - name: "target_hosts"
+      prompt: "Which hosts do you want to run the playbook on?"
+      private: false
+  tasks:
+    - name: Reboot machines
+      ansible.builtin.reboot:
+        msg: "Rebooting system for maintenance"
+        pre_reboot_delay: 5
+        post_reboot_delay: 30
+        reboot_timeout: 600
+        test_command: uptime
