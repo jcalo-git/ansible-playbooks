@@ -1,45 +1,70 @@
 - name: Install K3s Cluster
-  hosts: "{{ target_hosts }}"
+  hosts: "{{target_hosts}}"
   become: true
+
   vars_prompt:
     - name: "target_hosts"
-      prompt: "Which hosts"
+      prompt: "Which hosts?"
       private: false
 
   tasks:
+    - name: Gather service facts
+      ansible.builtin.service_facts:
+
     - name: Install K3s Master
       when: inventory_hostname in groups['master']
       block:
-        - name: Check K3s Service Status on Master
-          ansible.builtin.command: systemctl status k3s.service
-          register: k3s_status
-          ignore_errors: true
+        - name: Check if K3s Master is running
+          set_fact:
+            k3s_master_running: "{{ 'k3s.service' in ansible_facts.services and ansible_facts.services['k3s.service'].state == 'running' }}"
 
         - name: Install K3s Master Node
-          ansible.builtin.shell: curl -fsSL https://get.k3s.io | sh -
-          when: k3s_status.rc != 0
+          ansible.builtin.shell:
+            cmd: curl -fsSL https://get.k3s.io | sh -
+            timeout: 300
+          when: not k3s_master_running
 
-        - name: Get K3s Token
-          ansible.builtin.slurp:
-            src: /var/lib/rancher/k3s/server/token
-          register: k3s_token
-          when: k3s_status.rc != 0
+    - name: Get K3s Token (only from master)
+      run_once: true
+      delegate_to: "{{ groups['master'][0] }}"
+      ansible.builtin.slurp:
+        src: /var/lib/rancher/k3s/server/token
+      register: k3s_token_raw
+      ignore_errors: true
+
+    - name: Ensure K3s Token is Retrieved
+      fail:
+        msg: "Failed to retrieve K3s token. Check if K3s is running on master."
+      when: k3s_token_raw.failed | default(false)
+
+    - name: Store K3s Token in global facts
+      run_once: true
+      ansible.builtin.add_host:
+        name: "global_k3s"
+        k3s_token: "{{ k3s_token_raw.content | b64decode }}"
+
+    - name: Ensure K3s Token is available to worker nodes
+      set_fact:
+        k3s_token: "{{ hostvars['global_k3s']['k3s_token'] | default('') }}"
+      when: inventory_hostname in groups['worker']
 
     - name: Install K3s Worker
       when: inventory_hostname in groups['worker']
       block:
-        - name: Check K3s Service Status on Worker
-          ansible.builtin.command: systemctl status k3s-agent.service
-          register: k3s_worker_status
-          ignore_errors: true
+        - name: Check if K3s Worker is running
+          set_fact:
+            k3s_worker_running: "{{ 'k3s-agent.service' in ansible_facts.services and ansible_facts.services['k3s-agent.service'].state == 'running' }}"
 
         - name: Install K3s Worker Node
-          ansible.builtin.shell: >-
-            curl -fsSL https://get.k3s.io |
-            K3S_URL=https://{{ hostvars[groups['master'][0]]['ansible_host'] }}:6443
-            K3S_TOKEN={{ hostvars[groups['master'][0]]['k3s_token']['content'] | b64decode }}
+          ansible.builtin.shell: |
+            curl -sfL https://get.k3s.io | \
+            INSTALL_K3S_EXEC="agent" \
+            K3S_URL="https://{{ groups['master'][0] }}:6443" \
+            K3S_TOKEN="{{ k3s_token }}" \
             sh -
-          when: k3s_worker_status.rc != 0
+          when: not k3s_worker_running
 
     - name: Set Kubectl Permissions
-      ansible.builtin.command: chmod 755 /usr/local/bin/kubectl
+      ansible.builtin.file:
+        path: /usr/local/bin/kubectl
+        mode: '0755'
