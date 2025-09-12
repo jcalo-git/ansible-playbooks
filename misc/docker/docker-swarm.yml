@@ -18,8 +18,8 @@
 
 - name: Install Docker and Setup Swarm Manager
   hosts: manager
-  become: yes
-  gather_facts: yes
+  become: true
+  gather_facts: true
   tasks:
     - name: Check if Docker is installed
       command: docker --version
@@ -30,14 +30,14 @@
       apt:
         name: docker.io
         state: present
-        update_cache: yes
+        update_cache: true
       when: docker_installed.rc != 0
 
     - name: Add user to the docker group
       user:
         name: "root"  # Replace with the actual username
         groups: docker
-        append: yes
+        append: true
 
     - name: Get manager IP address for wlan0
       set_fact:
@@ -61,7 +61,7 @@
 
 - name: Setup Swarm Workers
   hosts: workers
-  become: yes
+  become: true
   tasks:
     - name: Check if Docker is installed
       command: docker --version
@@ -72,14 +72,14 @@
       apt:
         name: docker.io
         state: present
-        update_cache: yes
+        update_cache: true
       when: docker_installed.rc != 0
 
     - name: Add user to the docker group
       user:
         name: "root"  # Replace with the actual username
         groups: docker
-        append: yes
+        append: true
 
     - name: Join Docker Swarm as Worker
       command: docker swarm join --token {{ hostvars['manager']['worker_token'] }} {{ hostvars['manager']['manager_ip'] }}:2377
