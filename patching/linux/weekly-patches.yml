@@ -1,22 +1,38 @@
 ---
 - name: Weekly patches
-  hosts: pi
+  hosts: all
   become: true
-  become_user: root
-  gather_facts: false
+  gather_facts: true
   tasks:
+      # --- Ubuntu/Debian ---
     - name: Update cache
       ansible.builtin.apt:
-        update_cache: yes
+        update_cache: true
         cache_valid_time: 86400
+      when: ansible_os_family == "Debian"
 
     - name: Upgrade packages
       ansible.builtin.apt:
-        upgrade: yes
-        autoremove: yes
-        autoclean: yes
+        upgrade: true
+        autoremove: true
+        autoclean: true
       register: apt_upgrade_output
- 
+      when: ansible_os_family == "Debian"
+
+    # --- RHEL ---
+    - name: Update and upgrade all packages
+      ansible.builtin.yum:
+        name: '*'
+        state: present
+      when: ansible_os_family == "RedHat"
+
+    # --- Alpine ---
+    - name: Upgrade all packages
+      ansible.builtin.apk:
+        upgrade: true
+      when: ansible_os_family == "Alpine"
+
+    # --- reboot if required ---
     - name: Check if system requires a reboot
       ansible.builtin.stat:
         path: /var/run/reboot-required
@@ -25,7 +41,7 @@
     - name: Display variable
       ansible.builtin.debug:
         msg: '{{ reboot_required_file.stat.exists }}'
-    
+
     - name: Reboot
       ansible.builtin.reboot:
         msg: "Rebooting.."
