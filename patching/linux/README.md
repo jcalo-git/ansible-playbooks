@@ -2,14 +2,6 @@
 
 These Ansible playbooks are designed to automate the process of updating and upgrading packages on Linux hosts. It performs the following tasks:
 
-weekly-patches-selector.yml
-1. Asks the user which host group they would like to apply patches on.
-2. Updates the package lists for upgrades and new package installations.
-3. Upgrades all the installed packages on the host.
-4. Checks if the system requires a reboot after the upgrade.
-5. If a reboot is required, it reboots the system.
-
-
 weekly-patches.yml - complete automation across all machines in your hosts file
 1. Updates the package lists for upgrades and new package installations.
 2. Upgrades all the installed packages on the host.

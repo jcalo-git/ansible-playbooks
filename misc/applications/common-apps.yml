@@ -1,0 +1,40 @@
+---
+- name: Install common applications on multiple distros
+  hosts: all
+  become: true
+  gather_facts: true
+
+  vars:
+    common_packages_debian:
+      - htop
+      - vim
+      - git
+      - net-tools
+      - ncdu
+
+
+    common_packages_alpine:
+      - htop
+      - vim
+      - git
+      - net-tools
+      - ncdu
+      - lsblk
+
+
+  tasks:
+  # --- Ubuntu/Debian ---
+    - name: Install common packages on Debian-based systems
+      ansible.builtin.apt:
+        name: "{{ common_packages_debian }}"
+        state: present
+        update_cache: true
+      when: ansible_os_family == "Debian"
+
+  # --- Alpine ---
+    - name: Install common packages on Alpine-based systems
+      ansible.builtin.apk:
+        name: "{{ common_packages_alpine }}"
+        state: present
+        update_cache: true
+      when: ansible_os_family == "Alpine"
