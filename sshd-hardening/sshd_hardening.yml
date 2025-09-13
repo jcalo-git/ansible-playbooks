@@ -22,12 +22,12 @@
       LoginGraceTime: "60"
       ClientAliveInterval: 300
       ClientAliveCountMax: 2
-      UsePAM: "yes"
+      # UsePAM: "yes"
       Protocol: 2
       PermitEmptyPasswords: "no"
       ChallengeResponseAuthentication: "no"
-      GSSAPIAuthentication: "no"
-      GSSAPIKeyExchange: "no"
+      # GSSAPIAuthentication: "no"
+      # GSSAPIKeyExchange: "no"
       UseDNS: "no"
       ListenAddress: 0.0.0.0
       TCPKeepAlive: "no"
@@ -50,7 +50,7 @@
       copy:
         src: "{{ sshd_config_path }}"
         dest: "{{ sshd_config_backup_path }}"
-        remote_src: yes
+        remote_src: true
       when: not ansible_check_mode
       changed_when: false
       tags: backup
@@ -71,12 +71,15 @@
       notify: Restart SSH
       tags: config
 
+    - name: Gather service facts
+      ansible.builtin.service_facts:
+
     - name: Ensure SSH service is enabled and started
       ansible.builtin.service:
-        name: ssh.service
-        enabled: yes
+        name: "{{ 'ssh' if 'ssh' in ansible_facts.services else 'sshd' }}"
         state: started
-      tags: service
+        enabled: true
+      when: "'ssh' in ansible_facts.services or 'sshd' in ansible_facts.services"
 
     - name: Set Ciphers in sshd_config
       ansible.builtin.lineinfile:
@@ -84,7 +87,7 @@
         regexp: '^Ciphers '
         line: 'Ciphers aes256-ctr,aes192-ctr,aes128-ctr'
         state: present
-        create: yes
+        create: true
 
     - name: Set MACs in sshd_config
       ansible.builtin.lineinfile:
@@ -92,7 +95,7 @@
         regexp: '^MACs '
         line: 'MACs hmac-sha2-256,hmac-sha2-512'
         state: present
-        create: yes
+        create: true
 
     - name: Set KexAlgorithms in sshd_config
       ansible.builtin.lineinfile:
@@ -100,7 +103,7 @@
         regexp: '^KexAlgorithms '
         line: 'KexAlgorithms curve25519-sha256@libssh.org'
         state: present
-        create: yes
+        create: true
     
     - name: Copy SSH banner
       ansible.builtin.copy:
@@ -123,7 +126,6 @@
       register: sshd_test
       failed_when: sshd_test.rc != 0
 
-  handlers:
     - name: Restart SSH
       ansible.builtin.service:
         name: sshd

@@ -9,6 +9,7 @@
       - git
       - net-tools
       - ncdu
+      - zsh
 
 
     common_packages_alpine:
@@ -18,7 +19,13 @@
       - net-tools
       - ncdu
       - lsblk
+      - zsh
+      - shadow
 
+  vars_prompt:
+    - name: "zsh_user"
+      prompt: "enter user to change shell"
+      private: false
 
   tasks:
   # --- Ubuntu/Debian ---
