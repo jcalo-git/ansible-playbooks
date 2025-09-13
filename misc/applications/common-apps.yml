@@ -1,8 +1,6 @@
 ---
 - name: Install common applications on multiple distros
   hosts: all
-  become: true
-  gather_facts: true
 
   vars:
     common_packages_debian:
