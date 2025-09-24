@@ -1,0 +1,52 @@
+- name: Create user {{ username }}
+  user:
+    name: "{{ username }}"
+    password: "{{ password }}"
+    comment: "{{ fullname }}"
+    shell: /bin/{{ shell }}
+    createhome: yes
+    state: present
+    groups: "adm,sudo,sambashare,tss,docker"
+  register: user_info
+
+- name: Ensure shell ({{ shell }} is installed
+  ansible.builtin.apt:
+    name: "{{ shell }}"
+    state: present
+
+- name: Verify shell is supported
+  ansible.builtin.fail:
+    msg: "Shell {{ shell }} is not supported. Only bash and zsh are allowed."
+  when: shell not in ['bash', 'zsh']
+
+- name: Check if oh-my-zsh is already installed
+  ansible.builtin.stat:
+    path: "{{ user_info.home }}/.oh-my-zsh"
+  register: ohmyzsh_check
+  when: shell == 'zsh'
+
+- name: Install oh-my-zsh
+  ansible.builtin.shell: |
+    su - {{ username }} -c 'sh -c "$(curl -fsSL https://raw.github.com/ohmyzsh/ohmyzsh/master/tools/install.sh)"'
+  when: shell == 'zsh' and not ohmyzsh_check.stat.exists
+  become: yes
+
+- name: Set ZSH theme to agnoster
+  ansible.builtin.replace:
+    path: "{{ user_info.home }}/.zshrc"
+    regexp: '^ZSH_THEME=".*"'
+    replace: 'ZSH_THEME="agnoster"'
+  when: shell == 'zsh'
+
+- name: Copy default shell config if not exists
+  ansible.builtin.copy:
+    src: "{{ shell_config_map[shell] }}"
+    dest: "{{ user_info.home }}/.{{ shell }}rc"
+    owner: "{{ username }}"
+    group: "{{ username }}"
+    mode: '0644'
+    force: no
+  vars:
+    shell_config_map:
+      bash: '/etc/skel/.bashrc'
+      zsh: '/etc/zsh/newuser.zshrc.recommended'
