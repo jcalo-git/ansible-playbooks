@@ -1,40 +1,93 @@
 ---
-- name: Update macOS machine
+- name: macOS bootstrap & update
   hosts: localhost
   connection: local
-  gather_facts: false
+  gather_facts: true
+
+  vars:
+    homebrew_prefix: "{{ '/opt/homebrew' if ansible_architecture == 'arm64' else '/usr/local' }}"
+    brew_bin: "{{ homebrew_prefix }}/bin/brew"
+    pipx_bin: "{{ ansible_env.HOME }}/.local/bin/pipx"
+    pip_review_bin: "{{ ansible_env.HOME }}/.local/bin/pip-review"
+
+   # brew_packages:
+    #  - git
+    #  - python
+    #  - pipx
+
   tasks:
+
+    # ----------------------------
+    # Homebrew
+    # ----------------------------
     - name: Check if Homebrew is installed
-      ansible.builtin.command: which brew
-      register: brew_installed
-      ignore_errors: true
+      stat:
+        path: "{{ brew_bin }}"
+      register: brew_check
 
     - name: Install Homebrew
-      ansible.builtin.command: /bin/bash -c "$(curl -fsSL https://raw.githubusercontent.com/Homebrew/install/HEAD/install.sh)"
-      when: brew_installed.rc != 0
+      command: /bin/bash -c "$(curl -fsSL https://raw.githubusercontent.com/Homebrew/install/HEAD/install.sh)"
+      when: not brew_check.stat.exists
 
     - name: Update Homebrew
-      ansible.builtin.command: brew update
+      command: "{{ brew_bin }} update"
 
     - name: Upgrade Homebrew packages
-      ansible.builtin.command: brew upgrade -v
+      command: "{{ brew_bin }} upgrade"
 
-    - name: Check for system updates
-      ansible.builtin.command: softwareupdate -l
-      register: updates_available
+    #- name: Install required brew packages
+     # command: "{{ brew_bin }} install {{ item }}"
+     # loop: "{{ brew_packages }}"
+     # register: brew_install_results
+     # changed_when: "'already installed' not in brew_install_results.stdout"
 
-    - name: install osx updates 
-      ansible.builtin.command: softwareupdate -i -a
-      when: updates_available.rc != 0
+    # ----------------------------
+    # macOS system updates
+    # ----------------------------
+    - name: Check for macOS updates
+      command: softwareupdate -l
+      register: macos_updates
+      changed_when: false
+
+    - name: Install macOS updates
+      command: softwareupdate -i -a
+      when: "'No new software available' not in macos_updates.stdout"
+
+    # ----------------------------
+    # pipx setup
+    # ----------------------------
+    - name: Ensure pipx is installed
+      command: "{{ brew_bin }} install pipx"
+      args:
+        creates: "{{ homebrew_prefix }}/bin/pipx"
+
+    - name: Ensure pipx path is configured
+      command: "{{ brew_bin }}/bin/pipx ensurepath"
+      changed_when: false
+      failed_when: false
 
     - name: Check if pip-review is installed
-      ansible.builtin.command: which pip-review
-      register: pip_review_installed
-      ignore_errors: true
+      stat:
+        path: "{{ pip_review_bin }}"
+      register: pip_review_check
 
-    - name: Install pip-review if not installed
-      ansible.builtin.command: pipx install --upgrade pip-review
-      when: pip_review_installed.rc != 0
-  
-    - name: Upgrade python packages
-      ansible.builtin.command: pip-review --auto
+    - name: Install pip-review via pipx
+      command: "{{ pipx_bin }} install pip-review"
+      when: not pip_review_check.stat.exists
+
+    # ----------------------------
+    # Python package updates (safe mode)
+    # ----------------------------
+    - name: List outdated Python packages
+      command: python3 -m pip list --outdated
+      register: pip_outdated
+      changed_when: false
+      failed_when: false
+
+    - name: Show outdated Python packages
+      debug:
+        var: pip_outdated.stdout_lines
+
+    # Optional (commented out for safety)
+    # - name: Upgrade all Python packages (risky)
+    #   command: "{{ pip_review_bin }} --auto"
