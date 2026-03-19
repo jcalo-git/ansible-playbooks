@@ -27,14 +27,14 @@
       ansible.builtin.command: softwareupdate -i -a
       when: updates_available.rc != 0
 
-   # - name: Check if pip-review is installed
-    #  ansible.builtin.command: which pip-review
-     # register: pip_review_installed
-     # ignore_errors: true
+    - name: Check if pip-review is installed
+      ansible.builtin.command: which pip-review
+      register: pip_review_installed
+      ignore_errors: true
 
-    #- name: Install pip-review if not installed
-     # ansible.builtin.command: pip install --upgrade pip-review
-      #when: pip_review_installed.rc != 0
-
-    #- name: Upgrade python packages
-     # ansible.builtin.command: pip-review --auto
+    - name: Install pip-review if not installed
+      ansible.builtin.command: pipx install --upgrade pip-review
+      when: pip_review_installed.rc != 0
+  
+    - name: Upgrade python packages
+      ansible.builtin.command: pip-review --auto
