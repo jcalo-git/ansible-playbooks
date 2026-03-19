@@ -21,6 +21,11 @@
 
     - name: Check for system updates
       ansible.builtin.command: softwareupdate -l
+      register: updates_available
+
+    - name: install osx updates 
+      ansible.builtin.command: softwareupdate -i -a
+      when: updates_available.rc != 0
 
    # - name: Check if pip-review is installed
     #  ansible.builtin.command: which pip-review
