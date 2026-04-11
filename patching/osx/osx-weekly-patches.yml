@@ -5,15 +5,12 @@
   gather_facts: true
 
   vars:
-    homebrew_prefix: "{{ '/opt/homebrew' if ansible_architecture == 'arm64' else '/usr/local' }}"
+    homebrew_prefix: "{{ '/opt/homebrew' if ansible_facts['architecture'] == 'arm64' else '/usr/local' }}"
     brew_bin: "{{ homebrew_prefix }}/bin/brew"
-    pipx_bin: "{{ ansible_env.HOME }}/.local/bin/pipx"
-    pip_review_bin: "{{ ansible_env.HOME }}/.local/bin/pip-review"
 
    # brew_packages:
     #  - git
     #  - python
-    #  - pipx
 
   tasks:
 
@@ -31,9 +28,15 @@
 
     - name: Update Homebrew
       command: "{{ brew_bin }} update"
+      environment:
+        HOMEBREW_NONINTERACTIVE: "1"
 
-    - name: Upgrade Homebrew packages
-      command: "{{ brew_bin }} upgrade"
+    # Formulae only: full `brew upgrade` also upgrades casks, which often need
+    # sudo/TTY (e.g. fuse-t) and will fail under non-interactive Ansible.
+    - name: Upgrade Homebrew formulae
+      command: "{{ brew_bin }} upgrade --formula"
+      environment:
+        HOMEBREW_NONINTERACTIVE: "1"
 
     #- name: Install required brew packages
      # command: "{{ brew_bin }} install {{ item }}"
@@ -54,28 +57,6 @@
       when: "'No new software available' not in macos_updates.stdout"
 
     # ----------------------------
-    # pipx setup
-    # ----------------------------
-    - name: Ensure pipx is installed
-      command: "{{ brew_bin }} install pipx"
-      args:
-        creates: "{{ homebrew_prefix }}/bin/pipx"
-
-    - name: Ensure pipx path is configured
-      command: "{{ brew_bin }}/bin/pipx ensurepath"
-      changed_when: false
-      failed_when: false
-
-    - name: Check if pip-review is installed
-      stat:
-        path: "{{ pip_review_bin }}"
-      register: pip_review_check
-
-    - name: Install pip-review via pipx
-      command: "{{ pipx_bin }} install pip-review"
-      when: not pip_review_check.stat.exists
-
-    # ----------------------------
     # Python package updates (safe mode)
     # ----------------------------
     - name: List outdated Python packages
@@ -87,7 +68,3 @@
     - name: Show outdated Python packages
       debug:
         var: pip_outdated.stdout_lines
-
-    # Optional (commented out for safety)
-    # - name: Upgrade all Python packages (risky)
-    #   command: "{{ pip_review_bin }} --auto"
