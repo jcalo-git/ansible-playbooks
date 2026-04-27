@@ -11,6 +11,9 @@
    # brew_packages:
     #  - git
     #  - python
+  environment: 
+    HOMEBREW_NONINTERACTIVE: "1"  # Disable interactive prompts
+    OBJC_DISABLE_INITIALIZE_FORK_SAFETY: "YES"    # ← fixes the fork/profile error
 
   tasks:
 
