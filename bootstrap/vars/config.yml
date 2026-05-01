@@ -16,12 +16,40 @@ admin_user: " {{ admin_user }}"
 ssh_port: 22
 
 # ----------------------------
-# Firewall — additional ports beyond SSH
+# Baseline packages 
 # ----------------------------
-extra_open_ports:
-  - { port: 80,  proto: tcp, comment: "HTTP"  }
-  - { port: 443, proto: tcp, comment: "HTTPS" }
-  # - { port: 8080, proto: tcp, comment: "App" }
+baseline_packages:
+  - ufw
+  - fail2ban
+  - unattended-upgrades
+  - apt-listchanges
+  - libpam-pwquality
+  - auditd
+  - audispd-plugins
+  - acl
+  - curl
+  - gnupg
+  - ca-certificates
+  - lsb-release
+  - lynis
+  - clamav
+
+# ----------------------------
+# Additional packages
+# remove brackets when adding to the list. If no list leave brackets
+# ----------------------------
+additional_packages: []
+  # - lynis
+  # - clamav 
+
+# ----------------------------
+# Firewall — additional ports beyond SSH
+# remove brackets when adding to the list. If no list leave brackets
+# ----------------------------
+extra_open_ports: []
+  #- { port: 80,  proto: tcp, comment: "HTTP"  }
+  #- { port: 443, proto: tcp, comment: "HTTPS" }
+  #- { port: 8080, proto: tcp, comment: "App" }
 
 # ----------------------------
 # Networking

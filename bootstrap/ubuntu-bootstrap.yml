@@ -126,24 +126,12 @@
   tasks:
 
     # ----------------------------------------------------------
-    #  SECTION 3 — Base packages
+    #  SECTION 3 — Base packages + additional 
     # ----------------------------------------------------------
 
-    - name: Install baseline security packages
+    - name: Install baseline + additional packages
       apt:
-        name:
-          - ufw
-          - fail2ban
-          - unattended-upgrades
-          - apt-listchanges
-          - libpam-pwquality
-          - auditd
-          - audispd-plugins
-          - acl
-          - curl
-          - gnupg
-          - ca-certificates
-          - lsb-release
+        name: "{{ ((baseline_packages | default([])) + (additional_packages | default([]))) | unique }}"
         state: present
 
     # ----------------------------------------------------------
@@ -229,6 +217,8 @@
         - { regexp: '^#KexAlgorithms',                    line: 'KexAlgorithms curve25519-sha256,curve25519-sha256@libssh.org,diffie-hellman-group-exchange-sha256'  }
         - { regexp: '^#Ciphers',                          line: 'Ciphers chacha20-poly1305@openssh.com,aes256-gcm@openssh.com,aes128-gcm@openssh.com,aes256-ctr,aes192-ctr,aes128-ctr' }
         - { regexp: '^#MACs',                             line: 'MACs hmac-sha2-512-etm@openssh.com,hmac-sha2-256-etm@openssh.com,umac-128-etm@openssh.com,hmac-sha2-512,hmac-sha2-256,umac-128@openssh.com' }
+        - { regexp: '^#MaxSessions',                      line: 'MaxSessions 2' }
+        - { regexp: '^#TCPKeepAlive',                      line: 'TCPKeepAlive no' }
       notify: Restart sshd
 
     # - name: Restrict SSH to admin user only
@@ -290,8 +280,7 @@
         port: "{{ item.port | string }}"
         proto: "{{ item.proto | default('tcp') }}"
         comment: "{{ item.comment | default('') }}"
-      loop: "{{ extra_open_ports }}"
-      when: extra_open_ports | length > 0
+      loop: "{{ extra_open_ports | default([]) }}"
 
     - name: Enable UFW
       ufw:
