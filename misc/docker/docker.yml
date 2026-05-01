@@ -1,43 +1,110 @@
----
-- name: Install Docker and Docker-Compose-V2
-  hosts: "{{ target_hosts }}"
-  become: true  # Run tasks with sudo privileges
-  vars_prompt:
-    - name: "target_hosts"
-      prompt: "which hosts"
-      private: false
-    - name: "docker_user"
-      prompt: "which user"
-      private: false
-  tasks:
-    # --- Ubuntu/Debian ---
-    - name: Install docker (Ubuntu/Debian)
-      ansible.builtin.apt:
-        name:
-          - docker.io
-          - docker-compose
-        state: present
-        update_cache: true  # Update the package cache before installing
-      when: ansible_os_family == "Debian"
+--- 
+# == Docker CE Installation and Configuration Playbook
+# This playbook installs and configures Docker CE on Ubuntu systems.
+- name: Install and configure Docker CE 
+  hosts: "{{ target_host }}"
+  become: true
+  become_method: sudo
+  gather_facts: true
 
-    # --- Alpine ---
-    - name: Install Docker (Alpine)
-      ansible.builtin.apk:
+  vars_prompt:
+    - name: admin_user
+      prompt: "Admin username to add to docker group"
+      private: false
+  
+  pre_tasks:
+    - name: Ensure admin user exists
+      user  :
+        name: "{{ admin_user }}"
+        state: present
+        groups: sudo
+        append: true  
+    - name: ensure apt cache is updated
+      apt:
+        update_cache: true
+        cache_valid_time: 3600
+
+  tasks:    
+
+    # ----------------------------------------------------------
+    #  SECTION 1 — Remove unofficial and add Docker repositories
+    # ----------------------------------------------------------
+    - name: Remove unofficial Docker packages
+      apt:
         name:
           - docker
-          - docker-compose
-        state: present
-        update_cache: true  # Update the package cache before installing
-      when: ansible_os_family == "Alpine"
+          - docker-engine
+          - docker.io
+          - containerd
+          - runc
+        state: absent
 
-    - name: Enable and start Docker service
-      ansible.builtin.service:
+    - name: Add Docker GPG key
+      get_url:
+        url: https://download.docker.com/linux/ubuntu/gpg
+        dest: /etc/apt/keyrings/docker.asc
+        mode: "0644"
+        force: false
+
+    - name: Add Docker apt repository
+      apt_repository:
+        repo: >-
+          deb [arch={{ ansible_facts['architecture'] | replace('x86_64','amd64') | replace('aarch64','arm64') }}
+          signed-by=/etc/apt/keyrings/docker.asc]
+          https://download.docker.com/linux/ubuntu
+          {{ ansible_facts['lsb']['codename'] }} stable
+        filename: docker
+        state: present
+
+    - name: Install Docker CE packages
+      apt:
+        name:
+          - docker-ce
+          - docker-ce-cli
+          - containerd.io
+          - docker-buildx-plugin
+          - docker-compose-plugin
+        update_cache: true
+        state: present
+
+    - name: Enable and start Docker
+      systemd:
         name: docker
         enabled: true
         state: started
 
-    - name: Add the current user to the Docker group
-      ansible.builtin.user:
-        name: "{{ docker_user }}"
+    - name: Add admin user to docker group
+      user:
+        name: "{{ admin_user }}"
         groups: docker
-        append: true  # Append the user to the Docker group without removing existing groups
+        append: true
+    # ----------------------------------------------------------
+    #  SECTION 2 — Configure Docker daemon
+    # ----------------------------------------------------------
+
+    - name: Configure Docker daemon
+      copy:
+        dest: /etc/docker/daemon.json
+        mode: "0644"
+        content: |
+          {
+            "log-driver": "json-file",
+            "log-opts": {
+              "max-size": "10m",
+              "max-file": "3"
+            },
+            "no-new-privileges": true,
+            "live-restore": true,
+            "userland-proxy": false,
+            "icc": false
+          }
+      notify: Restart Docker
+
+## ----------------------------------------------------------
+# Handlers
+## ----------------------------------------------------------
+  handlers:
+    - name: Restart Docker
+      systemd:
+        name: docker
+        state: restarted

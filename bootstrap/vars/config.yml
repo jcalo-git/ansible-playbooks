@@ -1,0 +1,40 @@
+---
+# ============================================================
+#  vars/config.yml — Repo-tracked defaults. Safe to commit.
+#  Secrets (password hash, SSH key) live in vars/secrets.yml
+#  which is git-ignored and stays on your control machine only.
+# ============================================================
+
+# ----------------------------
+# Admin user
+# ----------------------------
+admin_user: " {{ admin_user }}"
+
+# ----------------------------
+# SSH
+# ----------------------------
+ssh_port: 22
+
+# ----------------------------
+# Firewall — additional ports beyond SSH
+# ----------------------------
+extra_open_ports:
+  - { port: 80,  proto: tcp, comment: "HTTP"  }
+  - { port: 443, proto: tcp, comment: "HTTPS" }
+  # - { port: 8080, proto: tcp, comment: "App" }
+
+# ----------------------------
+# Networking
+# ----------------------------
+enable_ipv6: false
+
+# ----------------------------
+# Time
+# ----------------------------
+timezone: "America/New_York"   # https://en.wikipedia.org/wiki/List_of_tz_database_time_zones
+ntp_pool: "pool.ntp.org"       # or use a regional pool e.g. us.pool.ntp.org
+
+# ----------------------------
+# Notifications
+# ----------------------------
+alert_email: "{{ alert_email }}"
