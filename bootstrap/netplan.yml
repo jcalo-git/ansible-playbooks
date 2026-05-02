@@ -1,0 +1,105 @@
+---
+- name: Configure Netplan
+  hosts: "{{ target_host }}"
+  become: true
+  become_method: sudo
+  gather_facts: true
+
+  vars:
+    netplan_config_file: /etc/netplan/01-ansible-managed-eth1.yaml
+    netplan_renderer: networkd
+    network_interfaces:
+      - name: eth1
+        addresses:
+          - 192.168.100.2/24 # change this 
+        routes:
+          - to: default
+            via: 192.168.100.1
+        nameservers:
+          addresses:
+            - 8.8.8.8
+            - 1.1.1.1
+          #search:
+          #  - example.com
+
+  pre_tasks:
+    - name: Verify OS is Debian-based
+      ansible.builtin.assert:
+        that: ansible_os_family == "Debian"
+        fail_msg: "This playbook only supports Debian/Ubuntu systems."
+
+  tasks:
+    - name: Ensure netplan is installed
+      ansible.builtin.apt:
+        name: netplan.io
+        state: present
+        update_cache: true
+
+    - name: Backup existing netplan config
+      ansible.builtin.copy:
+        src: "{{ netplan_config_file }}"
+        dest: "{{ netplan_config_file }}.bak"
+        remote_src: true
+      ignore_errors: true
+
+    - name: Deploy netplan configuration
+      ansible.builtin.copy:
+        dest: "{{ netplan_config_file }}"
+        owner: root
+        group: root
+        mode: "0600"
+        content: |
+          # Managed by Ansible — do not edit manually
+          network:
+            version: 2
+            renderer: {{ netplan_renderer }}
+            ethernets:
+          {% for iface in network_interfaces %}
+              {{ iface.name }}:
+                dhcp4: {{ iface.dhcp4 | default(true) | lower }}
+                dhcp6: {{ iface.dhcp6 | default(false) | lower }}
+          {% if iface.addresses is defined and not iface.dhcp4 %}
+                addresses:
+          {% for addr in iface.addresses %}
+                  - {{ addr }}
+          {% endfor %}
+          {% endif %}
+          {% if iface.gateway4 is defined %}
+                routes:
+                  - to: default
+                    via: {{ iface.gateway4 }}
+          {% endif %}
+          {% if iface.nameservers is defined %}
+                nameservers:
+                  addresses:
+          {% for dns in iface.nameservers.addresses %}
+                    - {{ dns }}
+          {% endfor %}
+          {% if iface.nameservers.search is defined %}
+                  search:
+          {% for domain in iface.nameservers.search %}
+                    - {{ domain }}
+          {% endfor %}
+          {% endif %}
+          {% endif %}
+          {% endfor %}
+      notify: Apply netplan
+
+    - name: Find stale netplan configs
+      ansible.builtin.find:
+        paths: /etc/netplan
+        patterns: "*.yaml,*.yml"
+        excludes: "{{ netplan_config_file | basename }}"
+      register: old_netplan_files
+
+    - name: Remove stale netplan configs
+      ansible.builtin.file:
+        path: "{{ item.path }}"
+        state: absent
+      loop: "{{ old_netplan_files.files }}"
+      notify: Apply netplan
+
+  handlers:
+    - name: Apply netplan
+      ansible.builtin.command: netplan apply
+      changed_when: true
