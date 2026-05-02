@@ -1,4 +1,3 @@
 .vscode
-ansible.cfg 
 hosts
 secrets.yml
