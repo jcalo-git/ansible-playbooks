@@ -1,9 +1,9 @@
 ---
 - name: Multipass launcher
   hosts: localhost
+  gather_facts: false
   become: false
   connection: local
-  gather_facts: false
   vars_prompt:
     - name: "nodes"
       prompt: "How many nodes do you want to create?"
@@ -18,14 +18,22 @@
       prompt: "How many cores? example 2"
       private: false
     - name: "disk"
-      prompt: "enter disk size example 40G"
+      prompt: "Disk size example 40G"
+      private: false
+    - name: "network"
+      prompt: "Network name example default"
       private: false
     - name: "image"
-      prompt: "which image? example lts"
+      prompt: "Image example lts"
       private: false
-
 
   tasks:
     - name: Launch {{ nodes }} instances
-      ansible.builtin.command: multipass launch --name node{{ item }} --cpus {{ cpu }} --memory {{ mem }} --disk {{ disk }} {{ image }}
+      ansible.builtin.command: >
+        multipass launch --name {{ node_name }}{{ item }}
+        --cpus {{ cpu }}
+        --memory {{ mem }}
+        --disk {{ disk }}
+        --network name={{ network }},mode=manual
+        {{ image }}
       with_sequence: start=1 end="{{ nodes }}"

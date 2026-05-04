@@ -1,0 +1,41 @@
+---
+- name: Configure eth1 via Netplan
+  hosts: servers
+  become: true
+  gather_facts: true
+
+  tasks:
+    - name: Ensure netplan is installed
+      ansible.builtin.apt:
+        name: netplan.io
+        state: present
+        update_cache: true
+
+    - name: Deploy eth1 netplan config
+      ansible.builtin.copy:
+        dest: /etc/netplan/02-eth1.yaml
+        owner: root
+        group: root
+        mode: "0600"
+        content: |
+          network:
+            version: 2
+            renderer: networkd
+            ethernets:
+              eth1:
+                dhcp4: false
+                addresses:
+                  - {{ eth1_address }}
+                routes:
+                  - to: default
+                    via: {{ eth1_gateway }}
+                nameservers:
+                  addresses:
+                    - 8.8.8.8
+                    - 1.1.1.1
+      notify: Apply netplan
+
+  handlers:
+    - name: Apply netplan
+      ansible.builtin.command: netplan apply
+      changed_when: true

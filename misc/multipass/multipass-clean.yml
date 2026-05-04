@@ -1,6 +1,8 @@
   - name: Clean multipass
     hosts: localhost
     gather_facts: false
+    become: false
+    connection: local
     tasks:
       - name: Remove all multipass instances
         command: "multipass delete --all --purge"
