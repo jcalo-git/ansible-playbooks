@@ -1,0 +1,26 @@
+#cloud-config
+package_update: true
+package_upgrade: true
+
+# Install Ansible (optional, if the target itself runs playbooks)
+packages:
+  - ansible
+
+# --- Users ---
+users:
+  # 1) Your normal human user – full shell, password‑less sudo
+  - name: ansible
+    sudo: ALL=(ALL) NOPASSWD:ALL
+    groups: sudo
+    shell: /bin/bash
+    lock_passwd: true
+    ssh_authorized_keys:
+      - ssh-ed25519 AAAAC3NzaC1lZDI1NTE5AAAAIP9G+60Cnpqke01Su6qXMXexIAjFyemGkIfgGiyE4xkj
+
+  # 2) Break‑glass ubuntu fallback – same key, unchanged
+  - name: ubuntu
+    lock_passwd: true
+    ssh_authorized_keys:
+      - ssh-rsa AAAAB3NzaC1yc2EAAAADAQABAAABAQCci3Fft/88x8DOw0Q29kl3eVF7RzVDB9WuEJjeSK0DsoZgk3z4ap4mBE62/VdAxKZjr4gRzJApFPp8p646tTXxq8sldveV7JrlMM2Bqxyrjriz4WHiNdQD48+weRRERUEp9qj+jSJjN8hX9IdEGQxmygK8k/oSvhP317IDmYmkRoTxPsZvS0J6fk1M+yE5wPJq5JNfY8bxnwqlSQr80q5R02hAbbfOeUNKAq8jFSRAEVgH+Dxl3XIL02hW/1P3I8mUEruOVY/tuhtnp8Pc6R4H2E30OJt+tNE805LjiDflN+Xv+CatRwNrZ7lhbH2PwmdZhFEOdYRxyUa3FQul5kzv
+
+  

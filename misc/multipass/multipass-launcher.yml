@@ -1,9 +1,9 @@
 ---
 - name: Multipass launcher
   hosts: localhost
+  gather_facts: false
   become: false
   connection: local
-  gather_facts: false
   vars_prompt:
     - name: "nodes"
       prompt: "How many nodes do you want to create?"
@@ -27,5 +27,10 @@
 
   tasks:
     - name: Launch {{ nodes }} instances
-      ansible.builtin.command: multipass launch --name node{{ item }} --cpus {{ cpu }} --memory {{ mem }} --disk {{ disk }} {{ image }}
+      ansible.builtin.command: > 
+        multipass launch --name node{{ item }} 
+        --cpus {{ cpu }} 
+        --memory {{ mem }} 
+        --disk {{ disk }}
+        {{ image }}
       with_sequence: start=1 end="{{ nodes }}"
